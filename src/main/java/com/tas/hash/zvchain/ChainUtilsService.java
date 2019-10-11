@@ -29,18 +29,7 @@ public class ChainUtilsService {
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
             .create();
 
-    private ChainUtilsService() {
-        InputStream in = ClassLoader.getSystemResourceAsStream("zvc.properties");
-        Properties p = new Properties();
-        try {
-            p.load(in);
-        } catch (IOException ignored) {
-            throw new RuntimeException("请在zvc.properties中配置zvc节点地址");
-        }
-        String baseUrl = p.getProperty("zvc.chain.url");
-        if (baseUrl == null) {
-            throw new RuntimeException("请在zvc.properties中配置zvc节点地址");
-        }
+    private ChainUtilsService(String baseUrl) {
         OkHttpClient httpClient = new OkHttpClient.Builder().connectTimeout(5, TimeUnit.SECONDS)
                 .readTimeout(20, TimeUnit.SECONDS).build();
 
@@ -53,11 +42,11 @@ public class ChainUtilsService {
         zvApi = retrofit.create(ZvApi.class);
     }
 
-    public static ChainUtilsService getInstance() {
+    public static ChainUtilsService getInstance(String baseUrl) {
         if (chainUtilsService == null) {
             synchronized (ChainUtilsService.class) {
                 if (chainUtilsService == null) {
-                    chainUtilsService = new ChainUtilsService();
+                    chainUtilsService = new ChainUtilsService(baseUrl);
                 }
             }
         }
