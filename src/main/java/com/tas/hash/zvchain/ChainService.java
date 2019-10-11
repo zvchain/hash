@@ -27,9 +27,11 @@ public class ChainService extends ChainBaseService {
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
             .create();
 
-    private ChainService(String baseUrl) {
-        OkHttpClient httpClient = new OkHttpClient.Builder().connectTimeout(5, TimeUnit.SECONDS)
-                .readTimeout(20, TimeUnit.SECONDS).build();
+    private ChainService(String baseUrl, long connectTimeOut, long readTimeOut) {
+        OkHttpClient httpClient = new OkHttpClient.Builder()
+                .connectTimeout(connectTimeOut, TimeUnit.SECONDS)
+                .readTimeout(readTimeOut, TimeUnit.SECONDS)
+                .build();
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(baseUrl)
@@ -39,11 +41,16 @@ public class ChainService extends ChainBaseService {
         zvApi = retrofit.create(ZvApi.class);
     }
 
-    public static ChainService getInstance(String baseUrl) {
+    public static void importKey(String privateKey) {
+        String zvcAddress = SignUtil.getAddress(privateKey);
+        keyMap.putIfAbsent(zvcAddress.toLowerCase(), privateKey);
+    }
+
+    public static ChainService getInstance(String baseUrl, long connectTimeOut, long readTimeOut) {
         if (chainService == null) {
             synchronized (ChainService.class) {
                 if (chainService == null) {
-                    chainService = new ChainService(baseUrl);
+                    chainService = new ChainService(baseUrl, connectTimeOut, readTimeOut);
                 }
             }
         }

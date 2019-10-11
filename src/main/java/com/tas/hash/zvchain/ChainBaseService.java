@@ -16,6 +16,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ChainBaseService {
 
+    static ConcurrentHashMap<String, String> keyMap = new ConcurrentHashMap<>(8);
+
     static ZvApi zvApi;
 
     public Long getBlockHeight() throws IOException {
@@ -69,7 +71,7 @@ public class ChainBaseService {
         BigInteger modelNonce = signModel.getNonce();
         Long nonce;
         String zvcAddress = signModel.getSource();
-        String privateKey = AccountService.keyMap.get(zvcAddress.toLowerCase());
+        String privateKey = keyMap.get(zvcAddress.toLowerCase());
         if (privateKey == null) {
             throw new RuntimeException("please import the private key of the source address!");
         }
