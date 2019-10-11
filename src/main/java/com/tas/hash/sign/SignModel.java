@@ -16,7 +16,7 @@ public class SignModel {
     private BigInteger gasLimit = BigInteger.valueOf(3000);
     private BigInteger gasPrice = BigInteger.valueOf(500);
     private BigInteger nonce;
-    private String privateKey;
+    private String source;
     private String target;
     private Byte type = (byte) 0;
     private BigInteger value;

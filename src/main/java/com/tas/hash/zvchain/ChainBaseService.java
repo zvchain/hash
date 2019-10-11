@@ -1,57 +1,22 @@
 package com.tas.hash.zvchain;
 
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.tas.hash.sign.SignUtil;
 import com.tas.hash.sign.SignModel;
+import com.tas.hash.sign.SignUtil;
 import com.tas.hash.zvchain.api.ZvApi;
 import com.tas.hash.zvchain.model.*;
-import okhttp3.OkHttpClient;
 import retrofit2.Call;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigInteger;
-import java.util.Properties;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class ChainUtilsService {
+/**
+ * @author lt
+ * @Date 5:29 下午 2019/10/11
+ */
+public class ChainBaseService {
 
-    private static volatile ChainUtilsService chainUtilsService;
-
-    private static ZvApi zvApi;
-
-    private static final Gson gson = new GsonBuilder()
-            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-            .create();
-
-    private ChainUtilsService(String baseUrl) {
-        OkHttpClient httpClient = new OkHttpClient.Builder().connectTimeout(5, TimeUnit.SECONDS)
-                .readTimeout(20, TimeUnit.SECONDS).build();
-
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(baseUrl)
-                .client(httpClient)
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .build();
-
-        zvApi = retrofit.create(ZvApi.class);
-    }
-
-    public static ChainUtilsService getInstance(String baseUrl) {
-        if (chainUtilsService == null) {
-            synchronized (ChainUtilsService.class) {
-                if (chainUtilsService == null) {
-                    chainUtilsService = new ChainUtilsService(baseUrl);
-                }
-            }
-        }
-        return chainUtilsService;
-    }
+    static ZvApi zvApi;
 
     public Long getBlockHeight() throws IOException {
         ZvRequest zvRequest = new ZvRequest();
@@ -103,7 +68,11 @@ public class ChainUtilsService {
     public String sendTx(SignModel signModel) throws Exception {
         BigInteger modelNonce = signModel.getNonce();
         Long nonce;
-        String zvcAddress = SignUtil.getAddress(signModel.getPrivateKey());
+        String zvcAddress = signModel.getSource();
+        String privateKey = AccountService.keyMap.get(zvcAddress.toLowerCase());
+        if (privateKey == null) {
+            throw new RuntimeException("please import the private key of the source address!");
+        }
         if (modelNonce == null) {
             nonce = getNonce(zvcAddress);
         } else {
@@ -111,7 +80,7 @@ public class ChainUtilsService {
         }
         signModel.setNonce(BigInteger.valueOf(nonce));
         signModel.setValue(signModel.getValue().multiply(BigInteger.TEN.pow(9)));
-        String signResult = SignUtil.sign(signModel);
+        String signResult = SignUtil.sign(privateKey, signModel);
         TxSend txSend = TxSend.builder()
                 .sign(signResult)
                 .source(zvcAddress)
@@ -137,7 +106,7 @@ public class ChainUtilsService {
 
     public Double getBalance(String address) throws IOException {
         ZvRequest zvRequest = new ZvRequest();
-        zvRequest.setMethod("Gzv_balance");
+        zvRequest.setMethod("Gzv_balaSignUtilnce");
         zvRequest.getParams().add(address);
         Call<Response<Double>> response = zvApi.requestDouble(zvRequest);
         return response.execute().body().getResult();
@@ -168,4 +137,5 @@ public class ChainUtilsService {
         Call<Response<MinerPoolInfo>> response = zvApi.getMinerPoolInfo(zvRequest);
         return response.execute().body().getResult();
     }
+
 }

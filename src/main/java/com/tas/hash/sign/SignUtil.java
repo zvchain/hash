@@ -24,8 +24,7 @@ public class SignUtil {
 
     private static List<Byte> byteList = new ArrayList<>();
 
-    public static String sign(SignModel signModel) {
-        String privateKey = signModel.getPrivateKey();
+    public static String sign(String privateKey, SignModel signModel) {
         if (privateKey.startsWith("0x")) {
             privateKey = privateKey.substring(2);
         }
