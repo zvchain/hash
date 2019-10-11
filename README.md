@@ -16,11 +16,11 @@ sh build/build.sh
 发送交易demo：
 
 ```java
-public static void main(String[] args) throws Exception {
-        // 先导入地址私钥
-        AccountService.importKey("0xaeb220a575b99b43857954d214bf48746c6edc932aa0b1e03f34dbf75816a8d9");
+    public static void main(String[] args) throws Exception {
+        // 导入私钥地址
+        ChainService.importKey("0xaeb220a575b99b43857954d214bf48746c6edc932aa0b1e03f34dbf75816a8d9");
 
-        ChainService chainService = ChainService.getInstance("http://node1.zvchain.io:8101/");
+        ChainService chainService = ChainService.getInstance("http://node1.zvchain.io:8101/", 5, 20);
         SignModel signModel = new SignModel();
         signModel.setValue(BigInteger.valueOf(100L));
         signModel.setSource("zv5fbf074e3482cd99666b94e3defdf0893aff0cd66608b0dc7d843dcb8da268ab");
