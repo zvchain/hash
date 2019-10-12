@@ -34,4 +34,4 @@ sh build/build.sh
 
 其余接口详见:
 
-com.tas.hash.zvchain.ChainBaseService
+com.zv.hash.zvchain.ChainBaseService

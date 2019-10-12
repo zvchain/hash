@@ -2,11 +2,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.tas</groupId>
+    <groupId>com.zv</groupId>
     <artifactId>hash</artifactId>
     <version>0.1</version>
     <name>hash</name>
-    <description>demo project for tas sign</description>
+    <description>demo project for zv sign</description>
 
     <properties>
         <java.version>1.8</java.version>
