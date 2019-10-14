@@ -35,3 +35,15 @@ sh build/build.sh
 其余接口详见:
 
 com.zv.hash.zvchain.ChainBaseService
+
+
+
+生成地址demo：
+
+```java
+public static void main(String[] args) {
+        ZvcKeyPair zvcKeyPair = SecretKeyUtil.createAccount();
+        System.out.println(zvcKeyPair);
+    }
+```
+
