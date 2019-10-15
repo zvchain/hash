@@ -38,7 +38,7 @@ public class SignUtil {
     private static String transactionHash(SECP256K1.KeyPair keyPair, SignModel signModel) {
         String source = getAddress(keyPair);
         String target = signModel.getTarget();
-        BigInteger value = signModel.getValue();
+        BigInteger value = signModel.getValue().toBigInteger();
         BigInteger gasLimit = signModel.getGasLimit();
         BigInteger gasPrice = signModel.getGasPrice();
         BigInteger nonce = signModel.getNonce();

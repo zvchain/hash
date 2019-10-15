@@ -7,6 +7,7 @@ import com.zv.hash.zvchain.model.*;
 import retrofit2.Call;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -73,7 +74,7 @@ public class ChainBaseService {
             nonce = modelNonce.longValue();
         }
         signModel.setNonce(BigInteger.valueOf(nonce));
-        signModel.setValue(signModel.getValue().multiply(BigInteger.TEN.pow(9)));
+        signModel.setValue(signModel.getValue().multiply(BigDecimal.TEN.pow(9)));
         String signResult = SignUtil.sign(privateKey, signModel);
         TxSend txSend = TxSend.builder()
                 .sign(signResult)

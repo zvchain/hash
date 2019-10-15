@@ -2,6 +2,7 @@ package com.zv.hash.sign;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 
 /**
@@ -19,6 +20,6 @@ public class SignModel {
     private String source;
     private String target;
     private Byte type = (byte) 0;
-    private BigInteger value;
+    private BigDecimal value;
 
 }
