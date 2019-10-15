@@ -32,6 +32,7 @@ public class SignUtil {
                 SECP256K1.SecretKey.fromInteger(new BigInteger(privateKey, 16)));
 
         String transactionHash = transactionHash(keyPair, signModel);
+        byteList.clear();
         return sign(keyPair, transactionHash);
     }
 
