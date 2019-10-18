@@ -1,17 +1,18 @@
 package com.zv.hash.sign;
 
 import com.google.common.primitives.Bytes;
-import com.zv.hash.util.MsgDigest;
-import com.zv.hash.util.SHA3_256;
 import net.consensys.cava.crypto.SECP256K1;
+import org.bouncycastle.jcajce.provider.digest.SHA3;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Hex;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
@@ -21,15 +22,19 @@ import java.util.List;
  */
 public class SignUtil {
 
+    private static String ZVC_FLAG = "zv";
+    private static String HEX_FLAG = "0x";
+    private static Integer HEX_NUMBER = 16;
+
     private static List<Byte> byteList = new ArrayList<>();
 
     public static String sign(String privateKey, com.zv.hash.sign.SignModel signModel) {
-        if (privateKey.startsWith("0x")) {
+        if (privateKey.startsWith(HEX_FLAG)) {
             privateKey = privateKey.substring(2);
         }
         Security.addProvider(new BouncyCastleProvider());
         SECP256K1.KeyPair keyPair = SECP256K1.KeyPair.fromSecretKey(
-                SECP256K1.SecretKey.fromInteger(new BigInteger(privateKey, 16)));
+                SECP256K1.SecretKey.fromInteger(new BigInteger(privateKey, HEX_NUMBER)));
 
         String transactionHash = transactionHash(keyPair, signModel);
         byteList.clear();
@@ -65,7 +70,7 @@ public class SignUtil {
     private static void write(String source, boolean addressType) {
         byte[] bytes;
         if (addressType) {
-            source = source.replace("zv", "");
+            source = source.replace(ZVC_FLAG, "");
             bytes = Hex.decode(source);
         } else {
             Base64.Decoder decoder = Base64.getDecoder();
@@ -108,21 +113,36 @@ public class SignUtil {
     }
 
     private static String getAddress(SECP256K1.KeyPair keyPair) {
-        MsgDigest digest = new SHA3_256();
-        digest.update(keyPair.publicKey().bytesArray());
-        return digest.toString();
+        SHA3.Digest256 digest = new SHA3.Digest256();
+        digest.update(filter(keyPair.publicKey().bytesArray()));
+        return Hex.toHexString(digest.digest());
     }
 
     public static String getAddress(String privateKey) {
         Security.addProvider(new BouncyCastleProvider());
-        if (privateKey.startsWith("0x")) {
+        if (privateKey.startsWith(HEX_FLAG)) {
             privateKey = privateKey.substring(2);
         }
         SECP256K1.KeyPair keyPair = SECP256K1.KeyPair.fromSecretKey(
-                SECP256K1.SecretKey.fromInteger(new BigInteger(privateKey, 16)));
-        MsgDigest digest = new SHA3_256();
-        digest.update(keyPair.publicKey().bytesArray());
-        return "zv" + digest.toString();
+                SECP256K1.SecretKey.fromInteger(new BigInteger(privateKey, HEX_NUMBER)));
+        return ZVC_FLAG + getAddress(keyPair);
+    }
+
+    private static byte[] filter(byte[] bytes) {
+        int remainder = bytes.length % 2;
+        if (remainder == 0) {
+            int halfSize = bytes.length / 2;
+            byte[] byteFront = Arrays.copyOfRange(bytes, 0, halfSize);
+            byte[] byteBehind = Arrays.copyOfRange(bytes, halfSize, bytes.length);
+            byteFront = removeSymbol(byteFront);
+            byteBehind = removeSymbol(byteBehind);
+            ByteBuffer byteBuffer = ByteBuffer.allocate(byteFront.length + byteBehind.length);
+            byteBuffer.put(byteFront);
+            byteBuffer.put(byteBehind);
+            return byteBuffer.array();
+        } else {
+            return bytes;
+        }
     }
 
 
@@ -140,20 +160,34 @@ public class SignUtil {
         byte[] msgHash = Hex.decode(hash);
         List<Byte> bytes = new ArrayList<>();
         SECP256K1.Signature signature = SECP256K1.signHashed(msgHash, keyPair);
-        for (byte b : signature.r().toByteArray()) {
+        for (byte b : checkout(signature.r().toByteArray())) {
             bytes.add(b);
         }
-        for (byte b : signature.s().toByteArray()) {
+        for (byte b : checkout(signature.s().toByteArray())) {
             bytes.add(b);
         }
         bytes.add(signature.v());
         byte[] res = Bytes.toArray(bytes);
-        res = removeSymbol(res);
-        return "0x" + Hex.toHexString(res);
+        return HEX_FLAG + Hex.toHexString(res);
+    }
+
+    private static byte[] checkout(byte[] bytes) {
+        int length = bytes.length;
+        if (length == 32) {
+            return bytes;
+        } else if (length < 32) {
+            byte[] result = new byte[32];
+            System.arraycopy(bytes, 0, result, 32 - bytes.length, bytes.length);
+            return result;
+        } else {
+            byte[] result = new byte[32];
+            System.arraycopy(bytes, bytes.length - 32, result, 0, 32);
+            return result;
+        }
     }
 
     private static byte[] removeSymbol(byte[] bytes) {
-        if (bytes[0] == 0) {
+        while (bytes[0] == 0) {
             byte[] res = new byte[bytes.length - 1];
             System.arraycopy(bytes, 1, res, 0, bytes.length - 1);
             bytes = res;

@@ -9,6 +9,7 @@ import retrofit2.Call;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Base64;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -61,10 +62,15 @@ public class ChainBaseService {
     }
 
     public String sendTx(SignModel signModel) throws Exception {
+        Base64.Decoder decoder = Base64.getDecoder();
         BigInteger modelNonce = signModel.getNonce();
         Long nonce;
         String zvcAddress = signModel.getSource();
         String privateKey = keyMap.get(zvcAddress.toLowerCase());
+        byte type = signModel.getType();
+        if (type < 0) {
+            throw new RuntimeException("type cannot be less than 0!");
+        }
         if (privateKey == null) {
             throw new RuntimeException("please import the private key of the source address!");
         }
@@ -85,8 +91,8 @@ public class ChainBaseService {
                 .gasPrice(signModel.getGasPrice().longValue())
                 .txType(signModel.getType().intValue())
                 .nonce(nonce)
-                .data(signModel.getData().getBytes())
-                .extraData(signModel.getExtraData().getBytes())
+                .data(signModel.getData())
+                .extraData(signModel.getExtraData())
                 .build();
         return sendTx(txSend);
     }

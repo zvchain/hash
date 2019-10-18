@@ -16,8 +16,8 @@ public class TxSend {
     private Long gasPrice;
     private Integer txType;
     private Long nonce;
-    private byte[] data;
-    private byte[] extraData;
+    private String data;
+    private String extraData;
 
     public static byte[] strToByteArray(String str) {
         if (str == null)
@@ -42,8 +42,8 @@ public class TxSend {
         json.put("gas_price", this.gasPrice);
         json.put("type", this.txType);
         json.put("nonce", this.nonce);
-        json.put("data", encode(this.data));
-        json.put("extra_data", encode(this.extraData));
+        json.put("data", this.data);
+        json.put("extra_data", this.extraData);
         return json;
     }
 }
